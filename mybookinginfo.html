@@ -2,225 +2,247 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>EVA AIR 航班機位監控儀表板</title>
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_modern.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA AIR 航情監控中心</title>
     <style>
         :root {
             --eva-green: #006241;
-            --eva-light-green: #00a650;
             --eva-gold: #c5a16b;
-            --bg-color: #f4f7f6;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --danger: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             --success: #10b981;
+            --danger: #f43f5e;
         }
 
-        body { 
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-            background: var(--bg-color); 
-            background-image: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
-            margin: 0; padding: 20px; color: #334e68;
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            font-family: 'PingFang TC', 'Segoe UI', sans-serif;
+            color: #1e293b;
             min-height: 100vh;
+            padding: 20px;
         }
 
-        .header {
-            display: flex; align-items: center; justify-content: space-between;
-            max-width: 1300px; margin: 0 auto 20px; padding: 0 10px;
+        /* 磨砂玻璃標題區 */
+        .glass-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 20px 40px;
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--card-shadow);
         }
 
-        h1 { 
-            color: var(--eva-green); font-size: 24px; margin: 0;
-            display: flex; align-items: center; gap: 10px;
+        .header-title h1 {
+            margin: 0; color: var(--eva-green); font-size: 1.8rem;
+            display: flex; align-items: center; gap: 15px;
         }
 
-        .last-update { font-size: 13px; color: #64748b; font-style: italic; }
-
-        /* 導覽卡片設計 */
-        .nav-container { 
-            max-width: 1300px; margin: 0 auto 20px;
-            background: var(--card-bg); backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255,255,255,0.8);
+        /* 分類按鈕區 */
+        .filter-section {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .tab-group { margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
-        .tab-group:last-child { margin-bottom: 0; }
-        .tab-label { font-weight: 800; min-width: 70px; color: var(--eva-green); font-size: 14px; }
-        
-        button { 
-            padding: 8px 18px; border: 1px solid #e2e8f0; background: white; 
-            cursor: pointer; border-radius: 50px; font-size: 14px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #475569; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        button:hover { border-color: var(--eva-light-green); transform: translateY(-2px); }
-        button.active { 
-            background: var(--eva-green); color: white; 
-            border-color: var(--eva-green); box-shadow: 0 4px 12px rgba(0,98,65,0.3);
-        }
-
-        /* 表格美化 */
-        #matrix-table { 
-            max-width: 1300px; margin: 0 auto;
-            border-radius: 16px; overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        .filter-chip {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
             border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
-        .tabulator { border: none !important; font-size: 14px; }
-        .tabulator-header { background-color: #f8fafc !important; border-bottom: 2px solid #e2e8f0 !important; }
-        .tabulator-col { background-color: #f8fafc !important; }
-        .tabulator-col-title { color: var(--eva-green) !important; font-weight: 800 !important; }
-
-        /* 格子內容設計 */
-        .seat-info { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .seat-main { font-weight: 800; font-size: 15px; }
-        .seat-sub { font-size: 11px; opacity: 0.8; }
-        
-        .cell-green { background-color: #ecfdf5 !important; color: #065f46 !important; border: 0.5px solid #d1fae5; }
-        .cell-red { background-color: #fef2f2 !important; color: #991b1b !important; border: 0.5px solid #fee2e2; }
-        .cell-empty { background-color: #f8fafc !important; color: #cbd5e1 !important; }
-
-        /* 方向徽章 */
-        .badge { 
-            padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;
-            display: inline-block;
+        .filter-chip.active {
+            background: var(--eva-green);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0,98,65,0.3);
         }
-        .badge-go { background: #dcfce7; color: #166534; }
-        .badge-back { background: #dbeafe; color: #1e40af; }
+
+        /* 網格容器 */
+        .flight-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        /* 航班卡片設計 */
+        .flight-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flight-card:hover {
+            transform: translateY(-10px);
+        }
+
+        /* 狀態光暈 */
+        .status-glow {
+            position: absolute;
+            top: -10px; right: -10px;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.4;
+        }
+
+        .glow-available { background: var(--success); }
+        .glow-full { background: var(--danger); }
+
+        .card-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .flight-no { font-size: 1.5rem; font-weight: 900; color: var(--eva-green); }
+        .date-badge { font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 8px; }
+
+        .route-info { font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+        .seat-stats {
+            display: flex; gap: 15px; margin-bottom: 15px;
+        }
+
+        .seat-box {
+            flex: 1; padding: 12px; border-radius: 16px; text-align: center;
+        }
+
+        .biz-box { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .eco-box { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+
+        .pax-info {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.85rem; color: #475569;
+            border-top: 1px solid #f1f5f9; padding-top: 12px;
+        }
+
+        .btn-view {
+            width: 100%; margin-top: 15px; padding: 10px;
+            border-radius: 12px; border: none; background: #f1f5f9;
+            color: var(--eva-green); font-weight: bold; cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-view:hover { background: #e2e8f0; }
+
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1><span>✈️</span> EVA AIR 航班機位監控</h1>
-    <div class="last-update" id="last-update">資料讀取中...</div>
-</div>
-
-<div class="nav-container">
-    <div class="tab-group">
-        <span class="tab-label">🌍 國家</span>
-        <div id="country-tabs"></div>
+<div class="glass-header">
+    <div class="header-title">
+        <h1><span>✈️</span> EVA AIR 航情儀表板</h1>
     </div>
-    <div class="tab-group">
-        <span class="tab-label">📍 機場</span>
-        <div id="airport-tabs"></div>
+    <div style="text-align: right">
+        <div style="font-size: 12px; color: #64748b;">System Active</div>
+        <div id="clock" style="font-weight: bold; color: var(--eva-green)">2026/02/27 10:30</div>
     </div>
 </div>
 
-<div id="matrix-table"></div>
+<div class="filter-section" id="filter-tabs">
+    <button class="filter-chip active" data-target="ALL">全部航線</button>
+    </div>
 
-
+<div class="flight-grid" id="main-grid">
+    </div>
 
 <script>
     let rawData = [];
-    let currentCountry = "";
-    let currentAirport = "";
 
-    fetch('./weekly_flights.json').then(res => res.json()).then(data => {
-        rawData = data;
-        initNavigation();
-        document.getElementById('last-update').innerText = "最後同步時間：" + new Date().toLocaleString();
-    });
+    // 模擬載入 JSON
+    fetch('./weekly_flights.json')
+        .then(res => res.json())
+        .then(data => {
+            rawData = data;
+            initFilters();
+            renderCards("ALL");
+        });
 
-    function initNavigation() {
-        const countries = [...new Set(rawData.map(d => d.country))];
-        const countryContainer = document.getElementById('country-tabs');
+    function initFilters() {
+        const airports = [...new Set(rawData.map(d => d.airport))];
+        const container = document.getElementById('filter-tabs');
         
-        countries.forEach((c, idx) => {
+        airports.forEach(ap => {
             const btn = document.createElement('button');
-            btn.innerText = c;
-            btn.onclick = () => {
-                currentCountry = c;
-                updateAirportTabs();
-                setActive(countryContainer, btn);
+            btn.className = 'filter-chip';
+            btn.innerText = ap;
+            btn.onclick = (e) => {
+                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderCards(ap);
             };
-            countryContainer.appendChild(btn);
-            if(idx === 0) btn.click();
+            container.appendChild(btn);
         });
     }
 
-    function updateAirportTabs() {
-        const airports = [...new Set(rawData.filter(d => d.country === currentCountry).map(d => d.airport))];
-        const airportContainer = document.getElementById('airport-tabs');
-        airportContainer.innerHTML = "";
+    function renderCards(filterAp) {
+        const container = document.getElementById('main-grid');
+        container.innerHTML = "";
 
-        airports.forEach((a, idx) => {
-            const btn = document.createElement('button');
-            btn.innerText = a;
-            btn.onclick = () => {
-                currentAirport = a;
-                renderMatrix();
-                setActive(airportContainer, btn);
-            };
-            airportContainer.appendChild(btn);
-            if(idx === 0) btn.click();
-        });
-    }
+        const filtered = filterAp === "ALL" ? rawData : rawData.filter(d => d.airport === filterAp);
 
-    function renderMatrix() {
-        const filtered = rawData.filter(d => d.country === currentCountry && d.airport === currentAirport);
-        const dates = [...new Set(rawData.map(d => d.date))].sort();
-        
-        const pivotData = {};
         filtered.forEach(f => {
-            if(!pivotData[f.flight_no]) {
-                pivotData[f.flight_no] = { 
-                    flight: f.flight_no, 
-                    dir: f.direction,
-                    route: f.route
-                };
-            }
-            pivotData[f.flight_no][f.date] = f;
-        });
-
-        const columns = [
-            {title:"航班", field:"flight", width:90, frozen:true, hozAlign:"center", 
-             formatter: c => `<b style="color:var(--eva-green)">${c.getValue()}</b>`},
-            {title:"方向", field:"dir", width:90, hozAlign:"center",
-             formatter: c => c.getValue() === "GO" ? '<span class="badge badge-go">🛫 出境</span>' : '<span class="badge badge-back">🛬 入境</span>'},
-            {title:"航線", field:"route", width:130, formatter: c => `<span style="font-size:12px; font-weight:500;">${c.getValue()}</span>`}
-        ];
-
-        dates.forEach(d => {
-            columns.push({
-                title: d.substring(5).replace('-', '/'),
-                field: d,
-                width: 95,
-                hozAlign: "center",
-                headerHozAlign: "center",
-                formatter: function(cell) {
-                    const val = cell.getValue();
-                    if (!val) return "<span class='cell-empty'>-</span>";
-                    
-                    const isFull = val.business === "0" || val.business === "0-";
-                    cell.getElement().classList.add(isFull ? "cell-red" : "cell-green");
-
-                    return `
-                        <div class="seat-info">
-                            <span class="seat-main">C${val.business} <small style="font-weight:normal">Y${val.economy}</small></span>
-                            <span class="seat-sub">👤 Pax: ${val.pax}</span>
-                        </div>
-                    `;
-                }
-            });
-        });
-
-        new Tabulator("#matrix-table", {
-            data: Object.values(pivotData),
-            columns: columns,
-            layout: "fitColumns",
-            height: "calc(100vh - 250px)",
+            const isAvailable = parseInt(f.business) > 0;
+            const card = document.createElement('div');
+            card.className = 'flight-card';
+            
+            card.innerHTML = `
+                <div class="status-glow ${isAvailable ? 'glow-available' : 'glow-full'}"></div>
+                <div class="card-header">
+                    <span class="flight-no">${f.flight_no}</span>
+                    <span class="date-badge">${f.date}</span>
+                </div>
+                <div class="route-info">
+                    <span>${f.direction === 'GO' ? '🛫' : '🛬'}</span>
+                    <span>${f.route}</span>
+                </div>
+                <div class="seat-stats">
+                    <div class="seat-box biz-box">
+                        <div style="font-size: 10px; opacity: 0.7">BUSINESS</div>
+                        <div style="font-size: 20px; font-weight: 800">${f.business}</div>
+                    </div>
+                    <div class="seat-box eco-box">
+                        <div style="font-size: 10px; opacity: 0.7">ECONOMY</div>
+                        <div style="font-size: 20px; font-weight: 800">${f.economy}</div>
+                    </div>
+                </div>
+                <div class="pax-info">
+                    <span>👥 已開票人數 (Pax)</span>
+                    <span style="font-weight: bold">${f.pax}</span>
+                </div>
+                <button class="btn-view">詳細數據</button>
+            `;
+            container.appendChild(card);
         });
     }
 
-    function setActive(container, activeBtn) {
-        container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        activeBtn.classList.add('active');
-    }
+    // 更新時鐘
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleString();
+    }, 1000);
 </script>
+
 </body>
 </html>
