@@ -1,1 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航班機位監控看板</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f0f2f5; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #006241; margin-bottom: 20px; }
+        #calendar { min-height: 600px; }
+        
+        /* 自定義卡片樣式 */
+        .fc-event { border: none !important; padding: 2px 5px; font-size: 0.85em; }
+        .fc-v-event { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h1>✈️ EVA AIR 航班機位週報表</h1>
+    <div id="calendar"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek', // 預設顯示週視圖
+            locale: 'zh-tw',             // 繁體中文
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,dayGridMonth'
+            },
+            slotMinTime: '05:00:00',     // 最早顯示 5 點
+            slotMaxTime: '23:59:59',     // 最晚到午夜
+            allDaySlot: false,           // 隱藏全天欄位
+            expandRows: true,            // 自動拉長行高
+            
+            // 關鍵點：讀取你的 JSON 檔案
+            events: './weekly_flights.json', 
+            
+            // 滑鼠移上去顯示 Pax 詳細資訊
+            eventDidMount: function(info) {
+                const props = info.event.extendedProps;
+                if (props && props.route) {
+                    info.el.title = `路線: ${props.route}\n已開票(Pax): ${props.pax}`;
+                }
+            },
+            
+            // 點擊事件 (可擴充跳轉到官網)
+            eventClick: function(info) {
+                alert('航班: ' + info.event.title + '\n' + info.event.extendedProps.route);
+            }
+        });
+        calendar.render();
+    });
+</script>
+
+</body>
+</html>
