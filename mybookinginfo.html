@@ -16,15 +16,15 @@
         }
 
         body {
-            margin: 0; font-family: 'PingFang TC', system-ui, sans-serif;
+            margin: 0; font-family: 'PingFang TC', 'Segoe UI', system-ui, sans-serif;
             background: var(--bg-gradient); display: flex; flex-direction: column;
-            height: 100vh; color: #1e293b;
+            height: 100vh; color: #1e293b; overflow: hidden;
         }
 
-        /* 頂部磨砂玻璃列 */
+        /* 頂部導覽列 */
         .top-bar {
             background: var(--glass); backdrop-filter: blur(15px);
-            padding: 15px 30px; display: flex; justify-content: space-between;
+            padding: 12px 30px; display: flex; justify-content: space-between;
             align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3);
             z-index: 1000; box-shadow: 0 4px 30px rgba(0,0,0,0.05);
         }
@@ -33,16 +33,16 @@
 
         /* 左側玻璃側邊欄 */
         .sidebar {
-            width: 260px; background: rgba(255, 255, 255, 0.5);
+            width: 260px; background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px); padding: 25px;
             border-right: 1px solid rgba(255,255,255,0.3);
             overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
         }
 
         .filter-group { display: flex; flex-direction: column; gap: 8px; }
-        .filter-label { font-weight: 800; color: var(--eva-green); font-size: 12px; letter-spacing: 1px; }
+        .filter-label { font-weight: 800; color: var(--eva-green); font-size: 11px; letter-spacing: 1px; opacity: 0.8; }
 
-        /* 側邊欄按鈕美化 */
+        /* 按鈕樣式 */
         .btn-select {
             padding: 12px 15px; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.6);
             border-radius: 14px; cursor: pointer; text-align: left; transition: 0.3s;
@@ -55,68 +55,76 @@
         }
 
         /* 右側主顯示區 */
-        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; scroll-behavior: smooth; }
 
-        /* 方向切換 Pill */
         .dir-switch {
             display: inline-flex; background: rgba(255,255,255,0.5); border-radius: 50px; 
-            padding: 5px; margin-bottom: 30px; border: 1px solid white;
+            padding: 5px; margin-bottom: 25px; border: 1px solid white;
         }
         .dir-btn {
-            padding: 8px 24px; border-radius: 50px; border: none; cursor: pointer;
-            font-size: 14px; font-weight: bold; background: transparent; transition: 0.3s;
+            padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer;
+            font-size: 13px; font-weight: bold; background: transparent; transition: 0.3s;
         }
         .dir-btn.active { background: white; color: var(--eva-green); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 
         /* 卡片網格 */
         .card-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;
         }
 
-        /* 發光玻璃卡片 */
+        /* 航班卡片 */
         .card {
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
-            border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.6);
-            box-shadow: var(--card-shadow); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: var(--card-shadow); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             position: relative; overflow: hidden;
         }
-        .card:hover { transform: translateY(-10px) scale(1.02); }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2); }
 
-        /* 狀態光暈特效 */
+        /* 發光特效 */
         .glow {
             position: absolute; top: -20px; right: -20px; width: 80px; height: 80px;
-            border-radius: 50%; filter: blur(25px); opacity: 0.5; z-index: 0;
+            border-radius: 50%; filter: blur(25px); opacity: 0.4; z-index: 0;
         }
         .glow-success { background: var(--success); }
         .glow-danger { background: var(--danger); }
 
         .card-content { position: relative; z-index: 1; }
-        .flight-id { font-size: 1.6rem; font-weight: 900; color: var(--eva-green); margin: 0; }
-        .route-text { font-size: 0.9rem; font-weight: 600; color: #64748b; margin: 10px 0 20px 0; }
 
-        /* 機位膠囊 */
-        .seat-stats { display: flex; gap: 12px; margin-bottom: 20px; }
-        .seat-pill {
-            flex: 1; padding: 12px; border-radius: 18px; text-align: center;
+        /* 時間軸樣式 */
+        .time-timeline {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 15px 0; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 15px;
         }
+        .time-block { text-align: center; }
+        .time-val { font-size: 18px; font-weight: 800; color: #1e293b; display: block; }
+        .time-label { font-size: 9px; color: #94a3b8; font-weight: bold; }
+        
+        .timeline-line { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 10px; }
+        .line-dashed { width: 100%; height: 1px; border-top: 1px dashed #cbd5e1; }
+        .plane-icon { position: absolute; font-size: 12px; filter: grayscale(1); background: transparent; }
+
+        /* 機位數據區 */
+        .seat-stats { display: flex; gap: 10px; margin-bottom: 15px; }
+        .seat-pill { flex: 1; padding: 10px; border-radius: 15px; text-align: center; }
         .biz-pill { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
         .eco-pill { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
-        .seat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-        .seat-val { font-size: 20px; font-weight: 800; display: block; }
+        .pill-label { font-size: 9px; text-transform: uppercase; font-weight: bold; opacity: 0.6; display: block; }
+        .pill-val { font-size: 20px; font-weight: 800; }
 
-        .pax-footer {
+        .card-footer {
             display: flex; justify-content: space-between; align-items: center;
-            padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 13px;
+            padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 12px; color: #64748b;
         }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <div style="font-size: 22px; font-weight: 900; color: var(--eva-green); display: flex; align-items: center; gap: 10px;">
-        <span>✈️</span> EVA BookingInfo
+    <div style="font-size: 20px; font-weight: 900; color: var(--eva-green); display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 24px;">✈️</span> EVA AIR BookingInfo
     </div>
-    <div id="clock" style="font-weight: bold; color: var(--eva-green); background: rgba(255,255,255,0.5); padding: 5px 15px; border-radius: 50px;"></div>
+    <div id="clock" style="font-size: 13px; font-weight: 600; color: var(--eva-green);"></div>
 </div>
 
 <div class="main-container">
@@ -137,7 +145,7 @@
 
     <div class="content-area">
         <div class="dir-switch">
-            <button class="dir-btn active" onclick="setDir('ALL', this)">ALL 全部</button>
+            <button class="dir-btn active" onclick="setDir('ALL', this)">全部</button>
             <button class="dir-btn" onclick="setDir('GO', this)">🛫 出境</button>
             <button class="dir-btn" onclick="setDir('BACK', this)">🛬 入境</button>
         </div>
@@ -149,11 +157,16 @@
     let rawData = [];
     let state = { country: '', airport: '', date: '', dir: 'ALL' };
 
-    fetch('./weekly_flights.json').then(res => res.json()).then(data => {
-        rawData = data;
-        initSidebar();
-    });
+    // 取得資料
+    fetch('./weekly_flights.json')
+        .then(res => res.json())
+        .then(data => {
+            rawData = data;
+            initSidebar();
+        })
+        .catch(err => console.error("無法載入資料:", err));
 
+    // 初始化側邊欄連動邏輯
     function initSidebar() {
         const countries = [...new Set(rawData.map(d => d.country))];
         renderFilter('country-list', countries, 'country', (val) => {
@@ -194,7 +207,11 @@
         applyFilters();
     }
 
+    // 核心渲染函數
     function applyFilters() {
+        const grid = document.getElementById('card-grid');
+        grid.innerHTML = "";
+        
         const filtered = rawData.filter(d => 
             d.country === state.country && 
             d.airport === state.airport && 
@@ -202,29 +219,47 @@
             (state.dir === 'ALL' || d.direction === state.dir)
         );
 
-        const grid = document.getElementById('card-grid');
-        grid.innerHTML = "";
-        
         filtered.forEach(f => {
             const hasBiz = parseInt(f.business) > 0;
             const card = document.createElement('div');
             card.className = 'card';
+            
+            // 卡片內部結構
             card.innerHTML = `
                 <div class="glow ${hasBiz ? 'glow-success' : 'glow-danger'}"></div>
                 <div class="card-content">
-                    <p class="flight-id">${f.flight_no}</p>
-                    <p class="route-text">${f.direction === 'GO' ? '🛫' : '🛬'} ${f.route}</p>
-                    <div class="seat-stats">
-                        <div class="seat-pill biz-pill">
-                            <span class="seat-label">Business</span>
-                            <span class="seat-val">${f.business}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 1.5rem; font-weight: 900; color: var(--eva-green);">${f.flight_no}</span>
+                        <span style="font-size: 11px; font-weight: bold; color: #64748b;">${f.route}</span>
+                    </div>
+
+                    <div class="time-timeline">
+                        <div class="time-block">
+                            <span class="time-label">DEP</span>
+                            <span class="time-val">${f.dep_time || '--:--'}</span>
                         </div>
-                        <div class="seat-pill eco-pill">
-                            <span class="seat-label">Economy</span>
-                            <span class="seat-val">${f.economy}</span>
+                        <div class="timeline-line">
+                            <div class="line-dashed"></div>
+                            <span class="plane-icon">✈️</span>
+                        </div>
+                        <div class="time-block">
+                            <span class="time-label">ARR</span>
+                            <span class="time-val">${f.arr_time || '--:--'}</span>
                         </div>
                     </div>
-                    <div class="pax-footer">
+
+                    <div class="seat-stats">
+                        <div class="seat-pill biz-pill">
+                            <span class="pill-label">Business</span>
+                            <span class="pill-val">${f.business}</span>
+                        </div>
+                        <div class="seat-pill eco-pill">
+                            <span class="pill-label">Economy</span>
+                            <span class="pill-val">${f.economy}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
                         <span>👥 已開票人數 (Pax)</span>
                         <span style="font-weight: 800; color: var(--eva-green)">${f.pax}</span>
                     </div>
@@ -234,6 +269,7 @@
         });
     }
 
+    // 時鐘功能
     setInterval(() => {
         document.getElementById('clock').innerText = new Date().toLocaleString();
     }, 1000);
