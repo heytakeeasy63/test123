@@ -3,246 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA AIR 航情監控中心</title>
+    <title>EVA AIR 航情指揮中心</title>
     <style>
         :root {
             --eva-green: #006241;
-            --eva-gold: #c5a16b;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            --success: #10b981;
-            --danger: #f43f5e;
+            --eva-light: #00a650;
+            --accent: #c5a16b;
+            --glass: rgba(255, 255, 255, 0.8);
+            --bg: #f0f4f8;
         }
 
         body {
-            margin: 0;
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            font-family: 'PingFang TC', 'Segoe UI', sans-serif;
-            color: #1e293b;
-            min-height: 100vh;
-            padding: 20px;
+            margin: 0; font-family: 'PingFang TC', system-ui, sans-serif;
+            background: var(--bg); display: flex; flex-direction: column; height: 100vh;
         }
 
-        /* 磨砂玻璃標題區 */
-        .glass-header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 20px 40px;
-            max-width: 1200px;
-            margin: 0 auto 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--card-shadow);
+        /* 頂部玻璃標題 */
+        .top-bar {
+            background: var(--glass); backdrop-filter: blur(10px);
+            padding: 15px 30px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100;
         }
 
-        .header-title h1 {
-            margin: 0; color: var(--eva-green); font-size: 1.8rem;
-            display: flex; align-items: center; gap: 15px;
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* 左側過濾控制面板 */
+        .sidebar {
+            width: 280px; background: white; padding: 25px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
         }
 
-        /* 分類按鈕區 */
-        .filter-section {
-            max-width: 1200px;
-            margin: 0 auto 30px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+        .filter-group { display: flex; flex-direction: column; gap: 10px; }
+        .filter-label { font-weight: 800; color: var(--eva-green); font-size: 14px; text-transform: uppercase; }
+
+        /* 按鈕樣式優化 */
+        .btn-select {
+            padding: 10px 15px; border: 1px solid #e2e8f0; background: #f8fafc;
+            border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s;
+            font-size: 14px; color: #475569;
+        }
+        .btn-select:hover { border-color: var(--eva-light); background: white; }
+        .btn-select.active { 
+            background: var(--eva-green); color: white; border-color: var(--eva-green);
+            box-shadow: 0 4px 10px rgba(0,98,65,0.2);
         }
 
-        .filter-chip {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            font-weight: 500;
+        /* 右側卡片顯示區 */
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        /* 快速切換開關 (出入境) */
+        .dir-switch {
+            display: flex; background: #e2e8f0; border-radius: 50px; padding: 4px;
+            width: fit-content; margin-bottom: 25px;
+        }
+        .dir-btn {
+            padding: 6px 20px; border-radius: 50px; border: none; cursor: pointer;
+            font-size: 13px; font-weight: bold; background: transparent; transition: 0.3s;
+        }
+        .dir-btn.active { background: white; color: var(--eva-green); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        /* 卡片網格 */
+        .card-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
         }
 
-        .filter-chip.active {
-            background: var(--eva-green);
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 8px 15px rgba(0,98,65,0.3);
+        /* 航班卡片 */
+        .card {
+            background: white; border-radius: 20px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid transparent;
+            transition: 0.3s; position: relative;
         }
+        .card:hover { transform: translateY(-5px); border-color: var(--eva-light); }
+        .card.full { opacity: 0.7; filter: grayscale(0.5); }
 
-        /* 網格容器 */
-        .flight-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .flight-id { font-size: 1.4rem; font-weight: 900; color: var(--eva-green); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .seats-row { display: flex; gap: 10px; margin: 15px 0; }
+        .seat-pill { 
+            flex: 1; padding: 10px; border-radius: 12px; text-align: center;
+            font-weight: bold; font-size: 18px;
         }
-
-        /* 航班卡片設計 */
-        .flight-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: 24px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .flight-card:hover {
-            transform: translateY(-10px);
-        }
-
-        /* 狀態光暈 */
-        .status-glow {
-            position: absolute;
-            top: -10px; right: -10px;
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            filter: blur(20px);
-            opacity: 0.4;
-        }
-
-        .glow-available { background: var(--success); }
-        .glow-full { background: var(--danger); }
-
-        .card-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .flight-no { font-size: 1.5rem; font-weight: 900; color: var(--eva-green); }
-        .date-badge { font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 8px; }
-
-        .route-info { font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-
-        .seat-stats {
-            display: flex; gap: 15px; margin-bottom: 15px;
-        }
-
-        .seat-box {
-            flex: 1; padding: 12px; border-radius: 16px; text-align: center;
-        }
-
-        .biz-box { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-        .eco-box { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
-
-        .pax-info {
-            display: flex; align-items: center; justify-content: space-between;
-            font-size: 0.85rem; color: #475569;
-            border-top: 1px solid #f1f5f9; padding-top: 12px;
-        }
-
-        .btn-view {
-            width: 100%; margin-top: 15px; padding: 10px;
-            border-radius: 12px; border: none; background: #f1f5f9;
-            color: var(--eva-green); font-weight: bold; cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-view:hover { background: #e2e8f0; }
-
+        .c-pill { background: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
+        .y-pill { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+        
+        .pax-bar { font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div class="glass-header">
-    <div class="header-title">
-        <h1><span>✈️</span> EVA AIR 航情儀表板</h1>
+<div class="top-bar">
+    <div style="font-size: 20px; font-weight: 900; color: var(--eva-green)">✈️ EVA MONITOR</div>
+    <div id="last-update" style="font-size: 12px; color: #94a3b8;"></div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar">
+        <div class="filter-group">
+            <div class="filter-label">🌍 國家地區</div>
+            <div id="country-list" class="filter-group"></div>
+        </div>
+        <div class="filter-group">
+            <div class="filter-label">📍 機場樞紐</div>
+            <div id="airport-list" class="filter-group"></div>
+        </div>
+        <div class="filter-group">
+            <div class="filter-label">📅 查詢日期</div>
+            <div id="date-list" class="filter-group"></div>
+        </div>
     </div>
-    <div style="text-align: right">
-        <div style="font-size: 12px; color: #64748b;">System Active</div>
-        <div id="clock" style="font-weight: bold; color: var(--eva-green)">2026/02/27 10:30</div>
+
+    <div class="content-area">
+        <div class="dir-switch">
+            <button class="dir-btn active" onclick="setDir('ALL', this)">全部</button>
+            <button class="dir-btn" onclick="setDir('GO', this)">🛫 出境</button>
+            <button class="dir-btn" onclick="setDir('BACK', this)">🛬 入境</button>
+        </div>
+        <div class="card-grid" id="card-grid"></div>
     </div>
 </div>
 
-<div class="filter-section" id="filter-tabs">
-    <button class="filter-chip active" data-target="ALL">全部航線</button>
-    </div>
-
-<div class="flight-grid" id="main-grid">
-    </div>
-
 <script>
     let rawData = [];
+    let state = { country: '', airport: '', date: '', dir: 'ALL' };
 
-    // 模擬載入 JSON
-    fetch('./weekly_flights.json')
-        .then(res => res.json())
-        .then(data => {
-            rawData = data;
-            initFilters();
-            renderCards("ALL");
+    fetch('./weekly_flights.json').then(res => res.json()).then(data => {
+        rawData = data;
+        document.getElementById('last-update').innerText = "Update: " + new Date().toLocaleString();
+        initSidebar();
+    });
+
+    function initSidebar() {
+        const countries = [...new Set(rawData.map(d => d.country))];
+        renderFilter('country-list', countries, 'country', (val) => {
+            state.country = val;
+            const airports = [...new Set(rawData.filter(d => d.country === val).map(d => d.airport))];
+            renderFilter('airport-list', airports, 'airport', (val2) => {
+                state.airport = val2;
+                const dates = [...new Set(rawData.filter(d => d.airport === val2).map(d => d.date))].sort();
+                renderFilter('date-list', dates, 'date', (val3) => {
+                    state.date = val3;
+                    applyFilters();
+                });
+            });
         });
+    }
 
-    function initFilters() {
-        const airports = [...new Set(rawData.map(d => d.airport))];
-        const container = document.getElementById('filter-tabs');
-        
-        airports.forEach(ap => {
+    function renderFilter(containerId, list, key, callback) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        list.forEach((item, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'filter-chip';
-            btn.innerText = ap;
-            btn.onclick = (e) => {
-                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+            btn.className = 'btn-select';
+            btn.innerText = item;
+            btn.onclick = () => {
+                container.querySelectorAll('.btn-select').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                renderCards(ap);
+                callback(item);
             };
             container.appendChild(btn);
+            if(idx === 0 && !state[key]) btn.click();
         });
     }
 
-    function renderCards(filterAp) {
-        const container = document.getElementById('main-grid');
-        container.innerHTML = "";
+    function setDir(dir, btn) {
+        state.dir = dir;
+        document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
 
-        const filtered = filterAp === "ALL" ? rawData : rawData.filter(d => d.airport === filterAp);
+    function applyFilters() {
+        const filtered = rawData.filter(d => 
+            d.country === state.country && 
+            d.airport === state.airport && 
+            d.date === state.date &&
+            (state.dir === 'ALL' || d.direction === state.dir)
+        );
 
+        const grid = document.getElementById('card-grid');
+        grid.innerHTML = "";
+        
         filtered.forEach(f => {
-            const isAvailable = parseInt(f.business) > 0;
-            const card = document.createElement('div');
-            card.className = 'flight-card';
-            
-            card.innerHTML = `
-                <div class="status-glow ${isAvailable ? 'glow-available' : 'glow-full'}"></div>
-                <div class="card-header">
-                    <span class="flight-no">${f.flight_no}</span>
-                    <span class="date-badge">${f.date}</span>
+            const isFull = f.business === "0" || f.business === "0-";
+            const div = document.createElement('div');
+            div.className = `card ${isFull ? 'full' : ''}`;
+            div.innerHTML = `
+                <div class="card-top">
+                    <span class="flight-id">${f.flight_no}</span>
+                    <div class="status-dot" style="background: ${isFull ? '#ef4444' : '#10b981'}"></div>
                 </div>
-                <div class="route-info">
-                    <span>${f.direction === 'GO' ? '🛫' : '🛬'}</span>
-                    <span>${f.route}</span>
+                <div style="font-size: 13px; font-weight: bold; color: #475569">${f.route}</div>
+                <div class="seats-row">
+                    <div class="seat-pill c-pill"><small style="font-size:10px; display:block">BIZ</small>${f.business}</div>
+                    <div class="seat-pill y-pill"><small style="font-size:10px; display:block">ECO</small>${f.economy}</div>
                 </div>
-                <div class="seat-stats">
-                    <div class="seat-box biz-box">
-                        <div style="font-size: 10px; opacity: 0.7">BUSINESS</div>
-                        <div style="font-size: 20px; font-weight: 800">${f.business}</div>
-                    </div>
-                    <div class="seat-box eco-box">
-                        <div style="font-size: 10px; opacity: 0.7">ECONOMY</div>
-                        <div style="font-size: 20px; font-weight: 800">${f.economy}</div>
-                    </div>
+                <div class="pax-bar">
+                    <span>👥 已開票 (Pax)</span>
+                    <span style="font-weight: 800">${f.pax}</span>
                 </div>
-                <div class="pax-info">
-                    <span>👥 已開票人數 (Pax)</span>
-                    <span style="font-weight: bold">${f.pax}</span>
-                </div>
-                <button class="btn-view">詳細數據</button>
             `;
-            container.appendChild(card);
+            grid.appendChild(div);
         });
     }
-
-    // 更新時鐘
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleString();
-    }, 1000);
 </script>
-
 </body>
 </html>
