@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>航班機位監控看板</title>
-    
+    <title>長榮 14 天機位監控看板</title>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f0f2f5; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h1 { text-align: center; color: #006241; margin-bottom: 20px; }
-        #calendar { min-height: 600px; }
-        
-        /* 自定義卡片樣式 */
-        .fc-event { border: none !important; padding: 2px 5px; font-size: 0.85em; }
-        .fc-v-event { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: 'PingFang TC', sans-serif; margin: 0; background-color: #f4f7f6; }
+        .toolbar { padding: 15px; text-align: center; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #006241; font-size: 1.5rem; margin: 0 0 15px 0; }
+        button { padding: 8px 16px; margin: 0 5px; cursor: pointer; border-radius: 4px; border: 1px solid #006241; background: white; color: #006241; }
+        button.active { background: #006241; color: white; }
+        #calendar { min-height: 700px; }
+        /* 讓月檢視的彈窗好看一點 */
+        .fc-popover { border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: none; }
     </style>
 </head>
 <body>
 
+<div class="toolbar">
+    <h1>✈️ 長榮航班機位 14 天動態看板</h1>
+    <button id="btn-all" class="active">全部航班</button>
+    <button id="btn-go">🛫 僅看出境</button>
+    <button id="btn-back">🛬 僅看入境</button>
+</div>
+
 <div class="container">
-    <h1>✈️ EVA AIR 航班機位週報表</h1>
     <div id="calendar"></div>
 </div>
 
@@ -29,35 +34,51 @@
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek', // 預設顯示週視圖
-            locale: 'zh-tw',             // 繁體中文
+            initialView: 'dayGridMonth', // 1. 預設使用月檢視
+            locale: 'zh-tw',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'timeGridWeek,dayGridMonth'
+                right: 'dayGridMonth,listWeek' // 提供月檢視與清單模式切換
             },
-            slotMinTime: '05:00:00',     // 最早顯示 5 點
-            slotMaxTime: '23:59:59',     // 最晚到午夜
-            allDaySlot: false,           // 隱藏全天欄位
-            expandRows: true,            // 自動拉長行高
+            dayMaxEvents: 3, // 2. 每格只顯示 3 個，多出的會變成 "+more" 點開彈窗
+            events: './weekly_flights.json', // 讀取 JSON
             
-            // 關鍵點：讀取你的 JSON 檔案
-            events: './weekly_flights.json', 
-            
-            // 滑鼠移上去顯示 Pax 詳細資訊
             eventDidMount: function(info) {
-                const props = info.event.extendedProps;
-                if (props && props.route) {
-                    info.el.title = `路線: ${props.route}\n已開票(Pax): ${props.pax}`;
-                }
-            },
-            
-            // 點擊事件 (可擴充跳轉到官網)
-            eventClick: function(info) {
-                alert('航班: ' + info.event.title + '\n' + info.event.extendedProps.route);
+                // 滑鼠移上去顯示詳細 Pax
+                info.el.title = `Pax: ${info.event.extendedProps.pax}\n${info.event.extendedProps.route}`;
             }
         });
+
         calendar.render();
+
+        // 3. 過濾功能實作
+        document.getElementById('btn-all').onclick = function() {
+            filterEvents('all'); toggleActive(this);
+        };
+        document.getElementById('btn-go').onclick = function() {
+            filterEvents('GO'); toggleActive(this);
+        };
+        document.getElementById('btn-back').onclick = function() {
+            filterEvents('BACK'); toggleActive(this);
+        };
+
+        function filterEvents(type) {
+            calendar.getEvents().forEach(event => {
+                if (type === 'all') {
+                    event.setProp('display', 'auto');
+                } else if (event.extendedProps.direction === type) {
+                    event.setProp('display', 'auto');
+                } else {
+                    event.setProp('display', 'none');
+                }
+            });
+        }
+
+        function toggleActive(btn) {
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
     });
 </script>
 
