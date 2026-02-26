@@ -1,5 +1,5 @@
 [
-  {"flight_no": "BR198", "date": "2026-02-27", "route": "TPE ➔ NRT", "airport": "NRT", "direction": "GO", "country": "日本", "business": "9", "economy": "25", "pax": 12},
+  {"flight_no": "BR198", "date": "2026-02-27", "dep_time": "08:30",  "arr_time": "11:55","route": "TPE ➔ NRT", "airport": "NRT", "direction": "GO", "country": "日本", "business": "9", "economy": "25", "pax": 12},
   {"flight_no": "BR197", "date": "2026-02-27", "route": "NRT ➔ TPE", "airport": "NRT", "direction": "BACK", "country": "日本", "business": "0", "economy": "4", "pax": 45},
   {"flight_no": "BR192", "date": "2026-02-27", "route": "TPE ➔ HND", "airport": "HND", "direction": "GO", "country": "日本", "business": "4", "economy": "10", "pax": 8},
   {"flight_no": "BR191", "date": "2026-02-27", "route": "HND ➔ TPE", "airport": "HND", "direction": "BACK", "country": "日本", "business": "2", "economy": "30", "pax": 15},
