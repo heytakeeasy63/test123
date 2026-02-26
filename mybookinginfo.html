@@ -2,42 +2,118 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>長榮航班機位結構化看板</title>
+    <title>EVA AIR 航班機位監控儀表板</title>
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_modern.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .nav-container { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .tab-group { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .tab-label { font-weight: bold; min-width: 60px; color: #555; }
-        button { padding: 8px 16px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 6px; }
-        button.active { background: #00a650; color: white; border-color: #00a650; }
-        
-        /* 矩陣格子內的內容樣式 */
-        .seat-info { line-height: 1.2; font-size: 11px; padding: 4px 0; }
-        .seat-count { font-weight: bold; font-size: 14px; display: block; }
-        .pax-count { color: #666; font-size: 10px; }
-        .time-label { color: #005a87; font-weight: bold; display: block; margin-top: 2px; }
+        :root {
+            --eva-green: #006241;
+            --eva-light-green: #00a650;
+            --eva-gold: #c5a16b;
+            --bg-color: #f4f7f6;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
 
-        .cell-green { background-color: #e3f9e5 !important; }
-        .cell-red { background-color: #fee2e2 !important; }
-        .cell-empty { background-color: #f9fafb !important; color: #ccc; }
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            background: var(--bg-color); 
+            background-image: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
+            margin: 0; padding: 20px; color: #334e68;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1300px; margin: 0 auto 20px; padding: 0 10px;
+        }
+
+        h1 { 
+            color: var(--eva-green); font-size: 24px; margin: 0;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .last-update { font-size: 13px; color: #64748b; font-style: italic; }
+
+        /* 導覽卡片設計 */
+        .nav-container { 
+            max-width: 1300px; margin: 0 auto 20px;
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .tab-group { margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .tab-group:last-child { margin-bottom: 0; }
+        .tab-label { font-weight: 800; min-width: 70px; color: var(--eva-green); font-size: 14px; }
+        
+        button { 
+            padding: 8px 18px; border: 1px solid #e2e8f0; background: white; 
+            cursor: pointer; border-radius: 50px; font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #475569; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        button:hover { border-color: var(--eva-light-green); transform: translateY(-2px); }
+        button.active { 
+            background: var(--eva-green); color: white; 
+            border-color: var(--eva-green); box-shadow: 0 4px 12px rgba(0,98,65,0.3);
+        }
+
+        /* 表格美化 */
+        #matrix-table { 
+            max-width: 1300px; margin: 0 auto;
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .tabulator { border: none !important; font-size: 14px; }
+        .tabulator-header { background-color: #f8fafc !important; border-bottom: 2px solid #e2e8f0 !important; }
+        .tabulator-col { background-color: #f8fafc !important; }
+        .tabulator-col-title { color: var(--eva-green) !important; font-weight: 800 !important; }
+
+        /* 格子內容設計 */
+        .seat-info { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .seat-main { font-weight: 800; font-size: 15px; }
+        .seat-sub { font-size: 11px; opacity: 0.8; }
+        
+        .cell-green { background-color: #ecfdf5 !important; color: #065f46 !important; border: 0.5px solid #d1fae5; }
+        .cell-red { background-color: #fef2f2 !important; color: #991b1b !important; border: 0.5px solid #fee2e2; }
+        .cell-empty { background-color: #f8fafc !important; color: #cbd5e1 !important; }
+
+        /* 方向徽章 */
+        .badge { 
+            padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;
+            display: inline-block;
+        }
+        .badge-go { background: #dcfce7; color: #166534; }
+        .badge-back { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <h1><span>✈️</span> EVA AIR 航班機位監控</h1>
+    <div class="last-update" id="last-update">資料讀取中...</div>
+</div>
+
 <div class="nav-container">
     <div class="tab-group">
-        <span class="tab-label">🌍 國家：</span>
+        <span class="tab-label">🌍 國家</span>
         <div id="country-tabs"></div>
     </div>
     <div class="tab-group">
-        <span class="tab-label">📍 機場：</span>
+        <span class="tab-label">📍 機場</span>
         <div id="airport-tabs"></div>
     </div>
 </div>
 
 <div id="matrix-table"></div>
+
+
 
 <script>
     let rawData = [];
@@ -47,6 +123,7 @@
     fetch('./weekly_flights.json').then(res => res.json()).then(data => {
         rawData = data;
         initNavigation();
+        document.getElementById('last-update').innerText = "最後同步時間：" + new Date().toLocaleString();
     });
 
     function initNavigation() {
@@ -88,36 +165,33 @@
         const filtered = rawData.filter(d => d.country === currentCountry && d.airport === currentAirport);
         const dates = [...new Set(rawData.map(d => d.date))].sort();
         
-        // 分組：出境 GO 與 入境 BACK
         const pivotData = {};
         filtered.forEach(f => {
-            const key = f.flight_no;
-            if(!pivotData[key]) {
-                pivotData[key] = { 
+            if(!pivotData[f.flight_no]) {
+                pivotData[f.flight_no] = { 
                     flight: f.flight_no, 
                     dir: f.direction,
-                    route: f.route,
-                    time: f.time // 假設 JSON 裡有 time 欄位
+                    route: f.route
                 };
             }
-            pivotData[key][f.date] = f;
+            pivotData[f.flight_no][f.date] = f;
         });
 
         const columns = [
-            {title:"航班", field:"flight", width:80, frozen:true},
-            {title:"方向", field:"dir", width:70, formatter: v => v.getValue() === "GO" ? "🛫 出境" : "🛬 入境"},
-            {title:"路線/時間", field:"route", width:140, formatter: cell => {
-                const d = cell.getData();
-                return `<div style="font-size:11px">${d.route}</div>`;
-            }}
+            {title:"航班", field:"flight", width:90, frozen:true, hozAlign:"center", 
+             formatter: c => `<b style="color:var(--eva-green)">${c.getValue()}</b>`},
+            {title:"方向", field:"dir", width:90, hozAlign:"center",
+             formatter: c => c.getValue() === "GO" ? '<span class="badge badge-go">🛫 出境</span>' : '<span class="badge badge-back">🛬 入境</span>'},
+            {title:"航線", field:"route", width:130, formatter: c => `<span style="font-size:12px; font-weight:500;">${c.getValue()}</span>`}
         ];
 
         dates.forEach(d => {
             columns.push({
-                title: d.substring(5),
+                title: d.substring(5).replace('-', '/'),
                 field: d,
-                width: 90,
+                width: 95,
                 hozAlign: "center",
+                headerHozAlign: "center",
                 formatter: function(cell) {
                     const val = cell.getValue();
                     if (!val) return "<span class='cell-empty'>-</span>";
@@ -125,11 +199,10 @@
                     const isFull = val.business === "0" || val.business === "0-";
                     cell.getElement().classList.add(isFull ? "cell-red" : "cell-green");
 
-                    // 這裡組合 C/Y/Pax 與 時間
                     return `
                         <div class="seat-info">
-                            <span class="seat-count">C${val.business} Y${val.economy}</span>
-                            <span class="pax-count">👤 Pax: ${val.pax}</span>
+                            <span class="seat-main">C${val.business} <small style="font-weight:normal">Y${val.economy}</small></span>
+                            <span class="seat-sub">👤 Pax: ${val.pax}</span>
                         </div>
                     `;
                 }
@@ -139,8 +212,8 @@
         new Tabulator("#matrix-table", {
             data: Object.values(pivotData),
             columns: columns,
-            layout: "fitDataFill",
-            height: "600px"
+            layout: "fitColumns",
+            height: "calc(100vh - 250px)",
         });
     }
 
