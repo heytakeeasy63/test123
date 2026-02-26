@@ -2,90 +2,152 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>航班機位熱力監控矩陣</title>
+    <title>長榮航班機位結構化看板</title>
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_modern.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f8f9fa; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        #matrix-table { background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .cell-green { background-color: #d1fae5 !important; color: #065f46; font-weight: bold; }
-        .cell-red { background-color: #fee2e2 !important; color: #991b1b; }
-        .cell-gray { background-color: #f3f4f6 !important; color: #9ca3af; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .nav-container { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .tab-group { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .tab-label { font-weight: bold; min-width: 60px; color: #555; }
+        button { padding: 8px 16px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 6px; }
+        button.active { background: #00a650; color: white; border-color: #00a650; }
+        
+        /* 矩陣格子內的內容樣式 */
+        .seat-info { line-height: 1.2; font-size: 11px; padding: 4px 0; }
+        .seat-count { font-weight: bold; font-size: 14px; display: block; }
+        .pax-count { color: #666; font-size: 10px; }
+        .time-label { color: #005a87; font-weight: bold; display: block; margin-top: 2px; }
+
+        .cell-green { background-color: #e3f9e5 !important; }
+        .cell-red { background-color: #fee2e2 !important; }
+        .cell-empty { background-color: #f9fafb !important; color: #ccc; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>📊 長榮航班 14 天機位熱力圖</h1>
-    <div id="last-update">最後更新：載入中...</div>
+<div class="nav-container">
+    <div class="tab-group">
+        <span class="tab-label">🌍 國家：</span>
+        <div id="country-tabs"></div>
+    </div>
+    <div class="tab-group">
+        <span class="tab-label">📍 機場：</span>
+        <div id="airport-tabs"></div>
+    </div>
 </div>
 
 <div id="matrix-table"></div>
 
 <script>
-    fetch('./weekly_flights.json')
-        .then(res => res.json())
-        .then(data => {
-            // 1. 取得所有不重複的日期並排序 (做為橫軸)
-            const dates = [...new Set(data.map(item => item.date))].sort();
-            
-            // 2. 轉換資料結構：以航班為 Key，日期為屬性
-            const pivotData = {};
-            data.forEach(item => {
-                if (!pivotData[item.flight_no]) {
-                    pivotData[item.flight_no] = { 
-                        flight: item.flight_no, 
-                        route: item.route,
-                        country: item.country,
-                        direction: item.direction
-                    };
-                }
-                // 將該日期的機位存入
-                pivotData[item.flight_no][item.date] = item.business;
-            });
+    let rawData = [];
+    let currentCountry = "";
+    let currentAirport = "";
 
-            const tableData = Object.values(pivotData);
+    fetch('./weekly_flights.json').then(res => res.json()).then(data => {
+        rawData = data;
+        initNavigation();
+    });
 
-            // 3. 動態產生欄位設定
-            const columns = [
-                {title:"航班", field:"flight", width:100, frozen:true},
-                {title:"航線", field:"route", width:150},
-            ];
-
-            // 為每一天產生一個欄位
-            dates.forEach(d => {
-                columns.push({
-                    title: d.substring(5), // 只顯示 MM-DD
-                    field: d,
-                    width: 80,
-                    hozAlign: "center",
-                    formatter: function(cell) {
-                        const val = cell.getValue();
-                        if (val === "0" || val === "0-") {
-                            cell.getElement().classList.add("cell-red");
-                            return "🈵";
-                        } else if (val === undefined) {
-                            cell.getElement().classList.add("cell-gray");
-                            return "-";
-                        } else {
-                            cell.getElement().classList.add("cell-green");
-                            return val;
-                        }
-                    }
-                });
-            });
-
-            // 4. 渲染表格
-            new Tabulator("#matrix-table", {
-                data: tableData,
-                columns: columns,
-                layout: "fitColumns",
-                movableColumns: true
-            });
-            
-            document.getElementById('last-update').innerText = "最後更新：" + new Date().toLocaleString();
+    function initNavigation() {
+        const countries = [...new Set(rawData.map(d => d.country))];
+        const countryContainer = document.getElementById('country-tabs');
+        
+        countries.forEach((c, idx) => {
+            const btn = document.createElement('button');
+            btn.innerText = c;
+            btn.onclick = () => {
+                currentCountry = c;
+                updateAirportTabs();
+                setActive(countryContainer, btn);
+            };
+            countryContainer.appendChild(btn);
+            if(idx === 0) btn.click();
         });
+    }
+
+    function updateAirportTabs() {
+        const airports = [...new Set(rawData.filter(d => d.country === currentCountry).map(d => d.airport))];
+        const airportContainer = document.getElementById('airport-tabs');
+        airportContainer.innerHTML = "";
+
+        airports.forEach((a, idx) => {
+            const btn = document.createElement('button');
+            btn.innerText = a;
+            btn.onclick = () => {
+                currentAirport = a;
+                renderMatrix();
+                setActive(airportContainer, btn);
+            };
+            airportContainer.appendChild(btn);
+            if(idx === 0) btn.click();
+        });
+    }
+
+    function renderMatrix() {
+        const filtered = rawData.filter(d => d.country === currentCountry && d.airport === currentAirport);
+        const dates = [...new Set(rawData.map(d => d.date))].sort();
+        
+        // 分組：出境 GO 與 入境 BACK
+        const pivotData = {};
+        filtered.forEach(f => {
+            const key = f.flight_no;
+            if(!pivotData[key]) {
+                pivotData[key] = { 
+                    flight: f.flight_no, 
+                    dir: f.direction,
+                    route: f.route,
+                    time: f.time // 假設 JSON 裡有 time 欄位
+                };
+            }
+            pivotData[key][f.date] = f;
+        });
+
+        const columns = [
+            {title:"航班", field:"flight", width:80, frozen:true},
+            {title:"方向", field:"dir", width:70, formatter: v => v.getValue() === "GO" ? "🛫 出境" : "🛬 入境"},
+            {title:"路線/時間", field:"route", width:140, formatter: cell => {
+                const d = cell.getData();
+                return `<div style="font-size:11px">${d.route}</div>`;
+            }}
+        ];
+
+        dates.forEach(d => {
+            columns.push({
+                title: d.substring(5),
+                field: d,
+                width: 90,
+                hozAlign: "center",
+                formatter: function(cell) {
+                    const val = cell.getValue();
+                    if (!val) return "<span class='cell-empty'>-</span>";
+                    
+                    const isFull = val.business === "0" || val.business === "0-";
+                    cell.getElement().classList.add(isFull ? "cell-red" : "cell-green");
+
+                    // 這裡組合 C/Y/Pax 與 時間
+                    return `
+                        <div class="seat-info">
+                            <span class="seat-count">C${val.business} Y${val.economy}</span>
+                            <span class="pax-count">👤 Pax: ${val.pax}</span>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        new Tabulator("#matrix-table", {
+            data: Object.values(pivotData),
+            columns: columns,
+            layout: "fitDataFill",
+            height: "600px"
+        });
+    }
+
+    function setActive(container, activeBtn) {
+        container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        activeBtn.classList.add('active');
+    }
 </script>
 </body>
 </html>
