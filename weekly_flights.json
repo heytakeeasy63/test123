@@ -1,0 +1,16 @@
+[
+  {
+    "title": "✈️ BR184 (C:9 Y:20)",
+    "start": "2026-02-27T07:30:00",
+    "end": "2026-02-27T11:45:00",
+    "backgroundColor": "#1DB446",
+    "extendedProps": { "pax": 15, "route": "TPE-NRT" }
+  },
+  {
+    "title": "✈️ BR198 (C:0 Y:2)",
+    "start": "2026-02-27T13:15:00",
+    "end": "2026-02-27T17:30:00",
+    "backgroundColor": "#FF4B4B",
+    "extendedProps": { "pax": 42, "route": "TPE-NRT" }
+  }
+]
