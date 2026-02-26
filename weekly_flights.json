@@ -1,16 +1,22 @@
 [
-  {
-    "title": "✈️ BR184 (C:9 Y:20)",
-    "start": "2026-02-27T07:30:00",
-    "end": "2026-02-27T11:45:00",
-    "backgroundColor": "#1DB446",
-    "extendedProps": { "pax": 15, "route": "TPE-NRT" }
-  },
-  {
-    "title": "✈️ BR198 (C:0 Y:2)",
-    "start": "2026-02-27T13:15:00",
-    "end": "2026-02-27T17:30:00",
-    "backgroundColor": "#FF4B4B",
-    "extendedProps": { "pax": 42, "route": "TPE-NRT" }
-  }
+  {"flight_no": "BR198", "date": "2026-02-27", "route": "TPE ➔ NRT", "airport": "NRT", "direction": "GO", "country": "日本", "business": "9", "economy": "25", "pax": 12},
+  {"flight_no": "BR197", "date": "2026-02-27", "route": "NRT ➔ TPE", "airport": "NRT", "direction": "BACK", "country": "日本", "business": "0", "economy": "4", "pax": 45},
+  {"flight_no": "BR192", "date": "2026-02-27", "route": "TPE ➔ HND", "airport": "HND", "direction": "GO", "country": "日本", "business": "4", "economy": "10", "pax": 8},
+  {"flight_no": "BR191", "date": "2026-02-27", "route": "HND ➔ TPE", "airport": "HND", "direction": "BACK", "country": "日本", "business": "2", "economy": "30", "pax": 15},
+  {"flight_no": "BR132", "date": "2026-02-27", "route": "TPE ➔ KIX", "airport": "KIX", "direction": "GO", "country": "日本", "business": "0", "economy": "0", "pax": 52},
+  {"flight_no": "BR131", "date": "2026-02-27", "route": "KIX ➔ TPE", "airport": "KIX", "direction": "BACK", "country": "日本", "business": "6", "economy": "18", "pax": 20},
+  {"flight_no": "BR170", "date": "2026-02-27", "route": "TPE ➔ ICN", "airport": "ICN", "direction": "GO", "country": "韓國", "business": "12", "economy": "40", "pax": 5},
+  {"flight_no": "BR106", "date": "2026-02-28", "route": "TPE ➔ FUK", "airport": "FUK", "direction": "GO", "country": "日本", "business": "3", "economy": "11", "pax": 18},
+  {"flight_no": "BR105", "date": "2026-02-28", "route": "FUK ➔ TPE", "airport": "FUK", "direction": "BACK", "country": "日本", "business": "0", "economy": "1", "pax": 33},
+  {"flight_no": "BR184", "date": "2026-02-28", "route": "TPE ➔ NRT", "airport": "NRT", "direction": "GO", "country": "日本", "business": "9", "economy": "22", "pax": 10},
+  {"flight_no": "BR183", "date": "2026-02-28", "route": "NRT ➔ TPE", "airport": "NRT", "direction": "BACK", "country": "日本", "business": "1", "economy": "0", "pax": 48},
+  {"flight_no": "BR130", "date": "2026-02-28", "route": "TPE ➔ KIX", "airport": "KIX", "direction": "GO", "country": "日本", "business": "8", "economy": "15", "pax": 22},
+  {"flight_no": "BR129", "date": "2026-02-28", "route": "KIX ➔ TPE", "airport": "KIX", "direction": "BACK", "country": "日本", "business": "0", "economy": "5", "pax": 39},
+  {"flight_no": "BR160", "date": "2026-02-28", "route": "TPE ➔ ICN", "airport": "ICN", "direction": "GO", "country": "韓國", "business": "15", "economy": "60", "pax": 2},
+  {"flight_no": "BR159", "date": "2026-02-28", "route": "ICN ➔ TPE", "airport": "ICN", "direction": "BACK", "country": "韓國", "business": "7", "economy": "20", "pax": 14},
+  {"flight_no": "BR196", "date": "2026-03-01", "route": "TPE ➔ NRT", "airport": "NRT", "direction": "GO", "country": "日本", "business": "0", "economy": "0", "pax": 55},
+  {"flight_no": "BR195", "date": "2026-03-01", "route": "NRT ➔ TPE", "airport": "NRT", "direction": "BACK", "country": "日本", "business": "4", "economy": "12", "pax": 21},
+  {"flight_no": "BR178", "date": "2026-03-01", "route": "TPE ➔ KIX", "airport": "KIX", "direction": "GO", "country": "日本", "business": "9", "economy": "30", "pax": 6},
+  {"flight_no": "BR177", "date": "2026-03-01", "route": "KIX ➔ TPE", "airport": "KIX", "direction": "BACK", "country": "日本", "business": "0", "economy": "0", "pax": 60},
+  {"flight_no": "BR154", "date": "2026-03-01", "route": "TPE ➔ ICN", "airport": "ICN", "direction": "GO", "country": "韓國", "business": "10", "economy": "25", "pax": 11}
 ]
