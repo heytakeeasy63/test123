@@ -3,38 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA AIR 航情指揮儀表板</title>
+    <title>EVA Air 航班監控面板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --eva-green: #006241;
-            --eva-light: #00a650;
-            --glass: rgba(255, 255, 255, 0.75);
-            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            --success: #10b981;
-            --danger: #f43f5e;
-            --card-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .card-go { border-left: 5px solid #005a31; background: rgba(0, 90, 49, 0.1); } /* 出境：長榮綠 */
+        .card-back { border-left: 5px solid #1e40af; background: rgba(30, 64, 175, 0.1); } /* 入境：深藍 */
+        .glass { backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .badge-go { background-color: #005a31; color: white; }
+        .badge-back { background-color: #1e40af; color: white; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold tracking-tight">✈️ Flight <span class="text-green-500">Monitor</span></h1>
+            <div class="flex gap-2">
+                <button onclick="filterData('ALL')" class="px-4 py-2 rounded-lg glass hover:bg-white/10 transition">全部</button>
+                <button onclick="filterData('GO')" class="px-4 py-2 rounded-lg glass hover:bg-green-900/30 transition text-green-400">🛫 出境</button>
+                <button onclick="filterData('BACK')" class="px-4 py-2 rounded-lg glass hover:bg-blue-900/30 transition text-blue-400">🛬 入境</button>
+            </div>
+        </header>
+
+        <div id="flight-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+    </div>
+
+    <script>
+        // 這是你剛才給我的 JSON 資料
+        const rawData = [
+            /* 貼入你剛才處理好的 JSON 數據 */
+            {"flight_no": "BR 184", "date": "2026-02-27", "route": "TPE NRT", "dep_time": "07:55", "arr_time": "12:00", "business": "0", "economy": "2", "pax": 5, "direction": "GO", "country": "Japan", "airport": "NRT"},
+            {"flight_no": "BR 183", "date": "2026-02-28", "route": "NRT TPE", "dep_time": "13:00", "arr_time": "16:05", "business": "2", "economy": "0", "pax": 6, "direction": "BACK", "country": "Japan", "airport": "NRT"}
+            // ... 後續省略
+        ];
+
+        function renderFlights(data) {
+            const container = document.getElementById('flight-container');
+            container.innerHTML = '';
+
+            data.forEach(flight => {
+                const isGo = flight.direction === "GO";
+                const cardClass = isGo ? 'card-go' : 'card-back';
+                const badgeClass = isGo ? 'badge-go' : 'badge-back';
+                const icon = isGo ? '🛫' : '🛬';
+                const label = isGo ? '出境' : '入境';
+
+                const html = `
+                    <div class="glass p-5 rounded-2xl ${cardClass} transition-all hover:scale-[1.02]">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="px-2 py-1 rounded text-xs font-bold uppercase ${badgeClass}">${icon} ${label}</span>
+                                <h3 class="text-2xl font-black mt-2">${flight.flight_no}</h3>
+                                <p class="text-gray-400 text-sm">${flight.date}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-mono text-white">${flight.airport}</p>
+                                <p class="text-xs text-gray-500">${flight.country}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3 border-y border-white/5 mb-4">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-500 uppercase">DEP</p>
+                                <p class="font-bold text-lg">${flight.dep_time}</p>
+                            </div>
+                            <div class="flex-1 px-4 text-center">
+                                <div class="h-[2px] bg-gray-700 w-full relative">
+                                    <div class="absolute -top-1 left-1/2 -translate-x-1/2 text-[10px]">✈️</div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-500 uppercase">ARR</p>
+                                <p class="font-bold text-lg">${flight.arr_time}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-black/20 p-2 rounded-lg text-center">
+                                <p class="text-[10px] text-gray-400">C</p>
+                                <p class="font-bold ${flight.business <= 0 ? 'text-red-400' : 'text-green-400'}">${flight.business}</p>
+                            </div>
+                            <div class="bg-black/20 p-2 rounded-lg text-center">
+                                <p class="text-[10px] text-gray-400">Y</p>
+                                <p class="font-bold ${flight.economy <= 0 ? 'text-red-400' : 'text-green-400'}">${flight.economy}</p>
+                            </div>
+                            <div class="bg-black/20 p-2 rounded-lg text-center border border-white/10">
+                                <p class="text-[10px] text-gray-400">PAX</p>
+                                <p class="font-bold text-yellow-500">${flight.pax}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
         }
 
-        body {
-            margin: 0; font-family: 'PingFang TC', 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-gradient); display: flex; flex-direction: column;
-            height: 100vh; color: #1e293b; overflow: hidden;
+        function filterData(type) {
+            if (type === 'ALL') {
+                // 如果是全部，我們先按照方向排序，讓出境排在一起，入境排在一起
+                const sorted = [...rawData].sort((a, b) => a.direction.localeCompare(b.direction));
+                renderFlights(sorted);
+            } else {
+                const filtered = rawData.filter(f => f.direction === type);
+                renderFlights(filtered);
+            }
         }
 
-        /* 頂部導覽列 */
-        .top-bar {
-            background: var(--glass); backdrop-filter: blur(15px);
-            padding: 12px 30px; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3);
-            z-index: 1000; box-shadow: 0 4px 30px rgba(0,0,0,0.05);
-        }
-
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-
-        /* 左側玻璃側邊欄 */
-        .sidebar {
-            width: 260px; background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(10px); padding: 25px;
+        // 初始載入
+        filterData('ALL');
+    </script>
+</body>
+</html>            backdrop-filter: blur(10px); padding: 25px;
             border-right: 1px solid rgba(255,255,255,0.3);
             overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
         }
