@@ -2,93 +2,128 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>EVA AIR 航情指揮儀表板 - 安全登入</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA AIR 航情指揮儀表板 | 安全存取</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         :root {
             --eva-green: #006241;
             --eva-blue: #1e40af;
-            --glass: rgba(255, 255, 255, 0.75);
-        }
-        body { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-            font-family: 'PingFang TC', sans-serif;
-            color: #f8fafc; height: 100vh; margin: 0; overflow: hidden;
-        }
-        
-        /* 登入介面樣式 */
-        #login-overlay {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .login-card {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 2.5rem; border-radius: 2rem; width: 100%; max-width: 400px;
-        }
-        input {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; margin-bottom: 1rem;
-        }
-        .btn-login {
-            background: var(--eva-green); color: white; width: 100%; padding: 0.75rem;
-            border-radius: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.3s;
+            --glass: rgba(255, 255, 255, 0.1);
         }
 
-        /* 儀表板樣式 (繼承你原本的風格) */
-        .sidebar { width: 260px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.1); }
-        .btn-select { 
-            width: 100%; text-align: left; padding: 10px 15px; margin-bottom: 5px;
-            border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 14px;
+        body { 
+            background: #0f172a; 
+            font-family: 'PingFang TC', 'Segoe UI', system-ui, sans-serif;
+            color: #f8fafc; height: 100vh; margin: 0; overflow: hidden;
         }
-        .btn-select.active { background: var(--eva-green); color: white; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .card-go { border-left: 5px solid var(--eva-green); }
-        .card-back { border-left: 5px solid var(--eva-blue); }
-        .all-view-container { display: flex; gap: 20px; height: 100%; }
-        .view-column { flex: 1; overflow-y: auto; padding-right: 10px; }
-        .column-header { font-weight: 900; padding: 10px; position: sticky; top: 0; background: rgba(30,41,59,0.9); z-index: 5; margin-bottom: 15px; }
+
+        /* 磨砂玻璃效果 */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 登入遮罩 */
+        #login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 雙欄排版控制 */
+        .all-view-container { display: flex; gap: 24px; height: 100%; width: 100%; }
+        .view-column { 
+            flex: 1; display: flex; flex-direction: column; gap: 16px; 
+            overflow-y: auto; padding-right: 8px;
+        }
+        
+        /* 捲軸美化 */
+        .view-column::-webkit-scrollbar { width: 6px; }
+        .view-column::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        /* 卡片樣式 */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px; padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .card-go { border-left: 4px solid var(--eva-green); }
+        .card-back { border-left: 4px solid var(--eva-blue); }
+        .card:hover { background: rgba(255, 255, 255, 0.06); transform: translateY(-2px); }
+
+        .btn-select {
+            width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 8px;
+            border-radius: 12px; background: rgba(255,255,255,0.05);
+            font-size: 14px; transition: 0.2s; border: 1px solid transparent;
+        }
+        .btn-select:hover { background: rgba(255,255,255,0.1); }
+        .btn-select.active { 
+            background: var(--eva-green); border-color: #10b981; color: white;
+            box-shadow: 0 4px 12px rgba(0, 98, 65, 0.3);
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <div id="login-overlay">
-    <div class="login-card">
-        <h1 class="text-2xl font-black text-center mb-6 text-green-500">EVA MONITOR LOGIN</h1>
-        <input type="text" id="user-acc" placeholder="使用者帳號">
-        <input type="password" id="user-pwd" placeholder="存取金鑰 (Password)">
-        <button class="btn-login" onclick="attemptLogin()">登入系統</button>
-        <p id="error-msg" class="text-red-400 text-xs mt-4 text-center hidden">身分驗證失敗，請檢查帳號密碼</p>
+    <div class="glass-panel p-10 rounded-[2rem] w-full max-w-sm border border-white/10 shadow-2xl text-center">
+        <div class="text-5xl mb-6">✈️</div>
+        <h1 class="text-2xl font-black mb-2 tracking-tight text-white">航情指揮中心</h1>
+        <p class="text-slate-400 text-sm mb-8">請輸入授權帳號與金鑰</p>
+        
+        <input type="text" id="user-acc" placeholder="帳號" 
+               class="w-full bg-slate-800/50 border border-slate-700 p-3 rounded-xl mb-3 focus:outline-none focus:border-green-500 transition-all">
+        <input type="password" id="user-pwd" placeholder="密碼" 
+               class="w-full bg-slate-800/50 border border-slate-700 p-3 rounded-xl mb-6 focus:outline-none focus:border-green-500 transition-all">
+        
+        <button onclick="attemptLogin()" 
+                class="w-full bg-green-600 hover:bg-green-500 text-white font-bold p-3 rounded-xl shadow-lg transition-all active:scale-95">
+            進入系統
+        </button>
+        
+        <p id="error-msg" class="text-red-400 text-xs mt-4 hidden font-medium"></p>
     </div>
 </div>
 
 <div id="dashboard" class="flex flex-col h-screen hidden">
-    <div class="p-4 bg-slate-900/50 flex justify-between border-b border-white/10">
-        <div class="font-black text-green-500 tracking-tighter text-xl">✈️ EVA MONITOR PRO</div>
-        <div id="clock" class="text-sm font-mono opacity-60"></div>
-    </div>
-    
+    <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-900/50">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">✈️</span>
+            <span class="font-black text-xl tracking-tighter text-green-500">EVA MONITOR <span class="text-white opacity-40">PRO</span></span>
+        </div>
+        <div id="clock" class="font-mono text-sm text-slate-400 bg-slate-800 px-4 py-1 rounded-full border border-white/5"></div>
+    </header>
+
     <div class="flex flex-1 overflow-hidden">
-        <div class="sidebar p-6 overflow-y-auto">
-            <div class="mb-6">
-                <p class="text-[10px] font-bold text-gray-500 mb-2 tracking-widest uppercase">Airport 機場</p>
+        <aside class="w-64 border-r border-white/5 p-6 overflow-y-auto bg-slate-900/20">
+            <div class="mb-8">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 block">樞紐機場 Hub</label>
                 <div id="airport-list"></div>
             </div>
-            <div class="mb-6">
-                <p class="text-[10px] font-bold text-gray-500 mb-2 tracking-widest uppercase">Date 日期</p>
+            <div class="mb-8">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 block">查詢日期 Date</label>
                 <div id="date-list"></div>
             </div>
-        </div>
+        </aside>
 
-        <div class="flex-1 p-8 overflow-hidden flex flex-col">
-            <div class="flex gap-4 mb-6">
-                <button onclick="setDir('ALL')" class="dir-btn px-6 py-2 rounded-full bg-white/10 text-sm font-bold active">全部</button>
-                <button onclick="setDir('GO')" class="dir-btn px-6 py-2 rounded-full bg-white/10 text-sm font-bold">🛫 出境</button>
-                <button onclick="setDir('BACK')" class="dir-btn px-6 py-2 rounded-full bg-white/10 text-sm font-bold">🛬 入境</button>
+        <main class="flex-1 p-8 flex flex-col overflow-hidden">
+            <div class="flex gap-2 mb-8 bg-slate-800/40 p-1 rounded-2xl w-fit border border-white/5">
+                <button onclick="setDir('ALL', this)" class="dir-btn px-6 py-2 rounded-xl text-sm font-bold bg-white/10 text-white shadow-sm">全部</button>
+                <button onclick="setDir('GO', this)" class="dir-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all">🛫 出境</button>
+                <button onclick="setDir('BACK', this)" class="dir-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all">🛬 入境</button>
             </div>
-            <div id="display-wrapper" class="flex-1 overflow-hidden"></div>
-        </div>
+
+            <div id="display-wrapper" class="flex-1 overflow-hidden">
+                </div>
+        </main>
     </div>
 </div>
 
@@ -96,61 +131,77 @@
     let rawData = [];
     let state = { airport: '', date: '', dir: 'ALL' };
 
+    // 核心登入與解密函式
     async function attemptLogin() {
         const accInput = document.getElementById('user-acc').value;
         const pwdInput = document.getElementById('user-pwd').value;
         const errorMsg = document.getElementById('error-msg');
+        
+        console.log("嘗試登入中...");
 
         try {
             const response = await fetch('./encrypted_flights.json');
-            const encryptedPackage = await response.json();
+            if (!response.ok) throw new Error("找不到加密資料檔 (JSON)");
 
-            // AES 解密
+            const encryptedPackage = await response.json();
+            
+            // 使用密碼作為解密金鑰
             const key = CryptoJS.SHA256(pwdInput);
             const iv = CryptoJS.enc.Base64.parse(encryptedPackage.iv);
+            
             const decrypted = CryptoJS.AES.decrypt(encryptedPackage.payload, key, {
                 iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7
             });
 
-            const decryptedData = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+            const decryptedStr = decrypted.toString(CryptoJS.enc.Utf8);
+            if (!decryptedStr) throw new Error("金鑰錯誤，無法解密");
 
-            // 比對帳號
+            const decryptedData = JSON.parse(decryptedStr);
+            console.log("解密成功！");
+
             if (decryptedData.account !== accInput) {
-                throw new Error("Invalid User");
+                throw new Error("帳號認證不符");
             }
 
-            // 進入系統
+            // 成功登入
             rawData = decryptedData.data;
-            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('dashboard').classList.remove('hidden');
+            
             initApp();
 
         } catch (e) {
+            console.error("Debug Error:", e.message);
+            errorMsg.innerText = e.message;
             errorMsg.classList.remove('hidden');
-            console.error(e);
         }
     }
 
     function initApp() {
-        // 初始化選單
+        console.log("初始化儀表板...");
+        
         const airports = [...new Set(rawData.map(d => d.airport))].sort();
-        renderMenu('airport-list', airports, 'airport');
-        
         const dates = [...new Set(rawData.map(d => d.date))].sort();
-        renderMenu('date-list', dates, 'date');
-        
-        // 預設選中第一項
-        state.airport = airports[0];
-        state.date = dates[0];
+
+        if (airports.length > 0) {
+            renderMenu('airport-list', airports, 'airport');
+            state.airport = airports[0];
+        }
+
+        if (dates.length > 0) {
+            renderMenu('date-list', dates, 'date');
+            state.date = dates[0];
+        }
+
         updateUI();
     }
 
     function renderMenu(id, list, key) {
         const container = document.getElementById(id);
-        container.innerHTML = list.map(item => 
-            `<button class="btn-select" onclick="updateState('${key}', '${item}', this)">${item}</button>`
+        container.innerHTML = list.map((item, idx) => 
+            `<button class="btn-select ${idx === 0 ? 'active' : ''}" 
+                     onclick="updateState('${key}', '${item}', this)">${item}</button>`
         ).join('');
-        container.firstChild.classList.add('active');
     }
 
     function updateState(key, val, el) {
@@ -160,8 +211,14 @@
         updateUI();
     }
 
-    function setDir(dir) {
+    function setDir(dir, el) {
         state.dir = dir;
+        document.querySelectorAll('.dir-btn').forEach(b => {
+            b.classList.remove('bg-white/10', 'text-white');
+            b.classList.add('text-slate-400');
+        });
+        el.classList.remove('text-slate-400');
+        el.classList.add('bg-white/10', 'text-white');
         updateUI();
     }
 
@@ -172,50 +229,79 @@
         if (state.dir === 'ALL') {
             const go = filtered.filter(d => d.direction === 'GO');
             const back = filtered.filter(d => d.direction === 'BACK');
+            
             wrapper.innerHTML = `
                 <div class="all-view-container">
                     <div class="view-column">
-                        <div class="column-header text-green-400">🛫 DEPARTURE (出境)</div>
-                        ${go.map(f => renderCard(f)).join('')}
+                        <div class="text-xs font-black text-green-500 mb-2 px-2 tracking-widest uppercase">🛫 DEPARTURE</div>
+                        ${go.length ? go.map(f => renderCard(f)).join('') : '<p class="text-slate-600 p-4">查無航班</p>'}
                     </div>
                     <div class="view-column">
-                        <div class="column-header text-blue-400">🛬 ARRIVAL (入境)</div>
-                        ${back.map(f => renderCard(f)).join('')}
+                        <div class="text-xs font-black text-blue-500 mb-2 px-2 tracking-widest uppercase">🛬 ARRIVAL</div>
+                        ${back.length ? back.map(f => renderCard(f)).join('') : '<p class="text-slate-600 p-4">查無航班</p>'}
                     </div>
                 </div>`;
         } else {
             const single = filtered.filter(d => d.direction === state.dir);
-            wrapper.innerHTML = `<div class="grid grid-cols-2 gap-4 overflow-y-auto h-full p-2">${single.map(f => renderCard(f)).join('')}</div>`;
+            wrapper.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto h-full pr-4">
+                    ${single.map(f => renderCard(f)).join('')}
+                </div>`;
         }
     }
 
     function renderCard(f) {
         const isGo = f.direction === 'GO';
+        const bizColor = parseInt(f.business) > 0 ? 'text-green-400' : 'text-red-500';
+        
         return `
             <div class="card ${isGo ? 'card-go' : 'card-back'}">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-xl font-black">${f.flight_no}</span>
-                    <span class="text-xs opacity-50 font-mono">${f.route}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4 text-center bg-black/20 p-3 rounded-xl">
-                    <div><p class="text-[9px] opacity-40">DEP</p><p class="font-bold">${f.dep_time}</p></div>
-                    <div><p class="text-[9px] opacity-40">ARR</p><p class="font-bold">${f.arr_time}</p></div>
-                </div>
-                <div class="flex gap-2 mt-4">
-                    <div class="flex-1 bg-white/5 p-2 rounded-lg text-center">
-                        <p class="text-[9px] opacity-40">BIZ</p><p class="font-bold ${f.business == '0' ? 'text-red-400' : 'text-green-400'}">${f.business}</p>
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-2xl font-black tracking-tighter text-white">${f.flight_no}</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">${f.route}</p>
                     </div>
-                    <div class="flex-1 bg-white/5 p-2 rounded-lg text-center">
-                        <p class="text-[9px] opacity-40">ECO</p><p class="font-bold">${f.economy}</p>
+                    <div class="bg-black/30 px-3 py-1 rounded-lg border border-white/5">
+                        <span class="text-[10px] font-mono text-slate-400">${f.airport}</span>
                     </div>
-                    <div class="flex-1 border border-white/10 p-2 rounded-lg text-center">
-                        <p class="text-[9px] opacity-40">PAX</p><p class="font-bold text-yellow-500">${f.pax}</p>
+                </div>
+
+                <div class="flex items-center gap-4 bg-slate-900/40 p-4 rounded-xl mb-6">
+                    <div class="flex-1 text-center">
+                        <p class="text-[9px] text-slate-500 uppercase font-bold">Departure</p>
+                        <p class="text-lg font-black">${f.dep_time || '--:--'}</p>
+                    </div>
+                    <div class="text-slate-700">→</div>
+                    <div class="flex-1 text-center">
+                        <p class="text-[9px] text-slate-500 uppercase font-bold">Arrival</p>
+                        <p class="text-lg font-black">${f.arr_time || '--:--'}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">C Class</p>
+                        <p class="text-xl font-black ${bizColor}">${f.business}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Y Class</p>
+                        <p class="text-xl font-black text-white">${f.economy}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-2 text-center border border-white/10">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Total Pax</p>
+                        <p class="text-xl font-black text-yellow-500">${f.pax}</p>
                     </div>
                 </div>
             </div>`;
     }
 
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
+    // 更新時鐘
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleString('zh-TW', {
+            hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', 
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    }, 1000);
 </script>
 </body>
 </html>
