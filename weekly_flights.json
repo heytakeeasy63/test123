@@ -1,19 +1,6 @@
 [
     {
         "flight_no": "BR 184",
-        "date": "2026-02-27",
-        "route": "TPE NRT",
-        "dep_time": "07:55",
-        "arr_time": "12:00",
-        "business": "0",
-        "economy": "2",
-        "pax": 5,
-        "direction": "GO",
-        "country": "Japan",
-        "airport": "NRT"
-    },
-    {
-        "flight_no": "BR 184",
         "date": "2026-02-28",
         "route": "TPE NRT",
         "dep_time": "07:55",
