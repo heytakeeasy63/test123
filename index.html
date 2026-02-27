@@ -3,116 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA Air 航班監控面板</title>
+    <title>EVA Flight Monitor Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .card-go { border-left: 5px solid #005a31; background: rgba(0, 90, 49, 0.1); } /* 出境：長榮綠 */
-        .card-back { border-left: 5px solid #1e40af; background: rgba(30, 64, 175, 0.1); } /* 入境：深藍 */
-        .glass { backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .badge-go { background-color: #005a31; color: white; }
-        .badge-back { background-color: #1e40af; color: white; }
+        body { background-color: #020617; color: #f8fafc; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .card-go { border-top: 4px solid #10b981; } /* 出境綠 */
+        .card-back { border-top: 4px solid #3b82f6; } /* 入境藍 */
+        select { background: #1e293b; color: white; border: 1px solid #334155; padding: 5px 10px; border-radius: 8px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8 flex justify-between items-center">
-            <h1 class="text-3xl font-bold tracking-tight">✈️ Flight <span class="text-green-500">Monitor</span></h1>
-            <div class="flex gap-2">
-                <button onclick="filterData('ALL')" class="px-4 py-2 rounded-lg glass hover:bg-white/10 transition">全部</button>
-                <button onclick="filterData('GO')" class="px-4 py-2 rounded-lg glass hover:bg-green-900/30 transition text-green-400">🛫 出境</button>
-                <button onclick="filterData('BACK')" class="px-4 py-2 rounded-lg glass hover:bg-blue-900/30 transition text-blue-400">🛬 入境</button>
+    <div class="max-w-7xl mx-auto">
+        <header class="glass sticky top-0 z-50 p-6 rounded-2xl mb-8 flex flex-wrap gap-4 items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-black text-green-500">EVA MONITOR</h1>
+                <p id="stats" class="text-xs text-gray-400">載入中...</p>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <select id="filter-airport" onchange="applyFilters()">
+                    <option value="ALL">所有機場</option>
+                </select>
+
+                <select id="filter-date" onchange="applyFilters()">
+                    <option value="ALL">所有日期</option>
+                </select>
+
+                <select id="filter-direction" onchange="applyFilters()">
+                    <option value="ALL">全部航向</option>
+                    <option value="GO">🛫 出境 (TPE Depart)</option>
+                    <option value="BACK">🛬 入境 (TPE Arrive)</option>
+                </select>
             </div>
         </header>
 
-        <div id="flight-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="flight-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             </div>
     </div>
 
     <script>
-        // 這是你剛才給我的 JSON 資料
+        // 這裡請貼入你那串長長的 JSON 資料
         const rawData = [
-            /* 貼入你剛才處理好的 JSON 數據 */
-            {"flight_no": "BR 184", "date": "2026-02-27", "route": "TPE NRT", "dep_time": "07:55", "arr_time": "12:00", "business": "0", "economy": "2", "pax": 5, "direction": "GO", "country": "Japan", "airport": "NRT"},
-            {"flight_no": "BR 183", "date": "2026-02-28", "route": "NRT TPE", "dep_time": "13:00", "arr_time": "16:05", "business": "2", "economy": "0", "pax": 6, "direction": "BACK", "country": "Japan", "airport": "NRT"}
-            // ... 後續省略
+            /* 請在此處貼入你剛才產出的完整 JSON 內容 */
+            // 範例：{"flight_no": "BR 184", "date": "2026-02-27", "route": "TPE NRT", ...},
         ];
+
+        // 初始化篩選下拉選單
+        function initFilters() {
+            const airports = [...new Set(rawData.map(f => f.airport))].sort();
+            const dates = [...new Set(rawData.map(f => f.date))].sort();
+
+            const aptSelect = document.getElementById('filter-airport');
+            airports.forEach(apt => {
+                aptSelect.innerHTML += `<option value="${apt}">${apt}</option>`;
+            });
+
+            const dateSelect = document.getElementById('filter-date');
+            dates.forEach(d => {
+                dateSelect.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        }
 
         function renderFlights(data) {
             const container = document.getElementById('flight-container');
+            const stats = document.getElementById('stats');
             container.innerHTML = '';
+            stats.innerText = `顯示筆數：${data.length} / 總筆數：${rawData.length}`;
 
-            data.forEach(flight => {
-                const isGo = flight.direction === "GO";
-                const cardClass = isGo ? 'card-go' : 'card-back';
-                const badgeClass = isGo ? 'badge-go' : 'badge-back';
-                const icon = isGo ? '🛫' : '🛬';
-                const label = isGo ? '出境' : '入境';
-
-                const html = `
-                    <div class="glass p-5 rounded-2xl ${cardClass} transition-all hover:scale-[1.02]">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <span class="px-2 py-1 rounded text-xs font-bold uppercase ${badgeClass}">${icon} ${label}</span>
-                                <h3 class="text-2xl font-black mt-2">${flight.flight_no}</h3>
-                                <p class="text-gray-400 text-sm">${flight.date}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xl font-mono text-white">${flight.airport}</p>
-                                <p class="text-xs text-gray-500">${flight.country}</p>
-                            </div>
+            data.forEach(f => {
+                const isGo = f.direction === "GO";
+                container.innerHTML += `
+                    <div class="glass p-4 rounded-xl ${isGo ? 'card-go' : 'card-back'} hover:scale-105 transition-transform">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-lg font-bold">${f.flight_no}</span>
+                            <span class="text-sm px-2 py-0.5 rounded ${isGo ? 'bg-green-900/50 text-green-400' : 'bg-blue-900/50 text-blue-400'}">
+                                ${isGo ? '🛫 GO' : '🛬 BACK'}
+                            </span>
                         </div>
-
-                        <div class="flex items-center justify-between py-3 border-y border-white/5 mb-4">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-500 uppercase">DEP</p>
-                                <p class="font-bold text-lg">${flight.dep_time}</p>
-                            </div>
-                            <div class="flex-1 px-4 text-center">
-                                <div class="h-[2px] bg-gray-700 w-full relative">
-                                    <div class="absolute -top-1 left-1/2 -translate-x-1/2 text-[10px]">✈️</div>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-500 uppercase">ARR</p>
-                                <p class="font-bold text-lg">${flight.arr_time}</p>
-                            </div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-3">
+                            <span>${f.date}</span>
+                            <span class="font-bold text-white">${f.airport} (${f.country})</span>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="bg-black/20 p-2 rounded-lg text-center">
-                                <p class="text-[10px] text-gray-400">C</p>
-                                <p class="font-bold ${flight.business <= 0 ? 'text-red-400' : 'text-green-400'}">${flight.business}</p>
+                        <div class="flex justify-between items-center bg-black/30 p-3 rounded-lg mb-3">
+                            <div class="text-center"><p class="text-[10px] text-gray-500">DEP</p><p class="font-mono">${f.dep_time}</p></div>
+                            <div class="text-gray-600">→</div>
+                            <div class="text-center"><p class="text-[10px] text-gray-500">ARR</p><p class="font-mono">${f.arr_time}</p></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="rounded p-1 bg-white/5">
+                                <p class="text-[9px] text-gray-500">C</p>
+                                <p class="font-bold ${parseInt(f.business) <= 0 ? 'text-red-500' : 'text-green-500'}">${f.business}</p>
                             </div>
-                            <div class="bg-black/20 p-2 rounded-lg text-center">
-                                <p class="text-[10px] text-gray-400">Y</p>
-                                <p class="font-bold ${flight.economy <= 0 ? 'text-red-400' : 'text-green-400'}">${flight.economy}</p>
+                            <div class="rounded p-1 bg-white/5">
+                                <p class="text-[9px] text-gray-500">Y</p>
+                                <p class="font-bold ${parseInt(f.economy) <= 0 ? 'text-red-500' : 'text-green-500'}">${f.economy}</p>
                             </div>
-                            <div class="bg-black/20 p-2 rounded-lg text-center border border-white/10">
-                                <p class="text-[10px] text-gray-400">PAX</p>
-                                <p class="font-bold text-yellow-500">${flight.pax}</p>
+                            <div class="rounded p-1 bg-white/5 border border-yellow-500/30">
+                                <p class="text-[9px] text-gray-500">PAX</p>
+                                <p class="font-bold text-yellow-500">${f.pax}</p>
                             </div>
                         </div>
                     </div>
                 `;
-                container.innerHTML += html;
             });
         }
 
-        function filterData(type) {
-            if (type === 'ALL') {
-                // 如果是全部，我們先按照方向排序，讓出境排在一起，入境排在一起
-                const sorted = [...rawData].sort((a, b) => a.direction.localeCompare(b.direction));
-                renderFlights(sorted);
-            } else {
-                const filtered = rawData.filter(f => f.direction === type);
-                renderFlights(filtered);
-            }
+        function applyFilters() {
+            const apt = document.getElementById('filter-airport').value;
+            const date = document.getElementById('filter-date').value;
+            const dir = document.getElementById('filter-direction').value;
+
+            let filtered = rawData.filter(f => {
+                const matchApt = (apt === 'ALL' || f.airport === apt);
+                const matchDate = (date === 'ALL' || f.date === date);
+                const matchDir = (dir === 'ALL' || f.direction === dir);
+                return matchApt && matchDate && matchDir;
+            });
+
+            // 全部顯示時，預設按日期與航向排序
+            filtered.sort((a, b) => a.date.localeCompare(b.date) || a.direction.localeCompare(b.direction));
+            renderFlights(filtered);
         }
 
-        // 初始載入
-        filterData('ALL');
+        // 啟動
+        initFilters();
+        applyFilters();
     </script>
 </body>
 </html>
